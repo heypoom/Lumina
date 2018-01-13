@@ -2,7 +2,7 @@ extern crate lumina;
 
 use lumina::*;
 
-fn main() {
+fn voxel_test() {
   let Grass = VoxelType::new("voxel:grass").name("Grass");
 
   let mut grass = Grass.create();
@@ -17,8 +17,8 @@ fn main() {
   let mut stone = Stone.create();
   &stone.move_to(2, 50, 2);
 
-  let Glowstone = Stone
-    .name("Glowstone")
+    let Glowstone = Stone
+      .name("Glowstone")
     .texture("voxel_glowstone")
     .brightness(20);
 
@@ -27,5 +27,11 @@ fn main() {
 
   let blocks: Vec<VoxelInstance> = vec![grass, stone, glowstone];
   println!("{:?}", blocks);
+}
+
+fn main() {
+  voxel_test();
+
+  render::init();
 }
 
