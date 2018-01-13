@@ -61,6 +61,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
 
   let mut t: f32 = -0.5;
   let mut x: f32 = -0.5;
+  let mut z: f32 = 2.0;
 
   while !closed {
     t += 0.0002;
@@ -73,7 +74,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       [0.01, 0.0, 0.0, 0.0],
       [0.0, 0.01, 0.0, 0.0],
       [0.0, 0.0, 0.01, 0.0],
-      [0.0, 0.0, 2.0, 1.0f32]
+      [0.0, 0.0, z, 1.0f32]
     ];
 
     let mut target = display.draw();
@@ -125,20 +126,22 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
             WindowEvent::Closed => closed = true,
             WindowEvent::KeyboardInput { input, .. } => {
               match input.scancode {
+                13 => {
+                  println!("W");
+                  z -= 0.1;
+                },
                 0 => {
                   println!("A");
+                  x -= 0.1;
                 },
                 1 => {
                   println!("S");
-                  x -= 0.1;
+                  z += 0.1;
                 },
                 2 => {
                   println!("D");
-                },
-                13 => {
-                  println!("W");
                   x += 0.1;
-                },
+                }
                 _ => ()
               }
             }
