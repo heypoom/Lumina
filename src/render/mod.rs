@@ -94,10 +94,20 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       u_light: [-1.0, 0.4, 0.9f32]
     };
 
-    let mut target = display.draw();
+    let params = glium::DrawParameters {
+      depth: glium::Depth {
+        test: glium::draw_parameters::DepthTest::IfLess,
+        write: true,
+        ..Default::default()
+      },
+      ..Default::default()
+    };
 
-    target.clear_color(0.93, 0.93, 0.93, 1.0);
-    target.draw((&positions, &normals), &indices, &shader, &uniforms, &Default::default()).unwrap();
+    let mut target = display.draw();
+    let vertices = (&positions, &normals);
+
+    target.clear_color_and_depth((0.93, 0.93, 0.93, 1.0), 1.0);
+    target.draw(vertices, &indices, &shader, &uniforms, &params).unwrap();
     target.finish().unwrap();
 
     events_loop.poll_events(|ev| {
@@ -140,7 +150,9 @@ pub fn init() {
     .with_dimensions(1024, 768)
     .with_title("Lumina 0.1");
 
-  let context = ContextBuilder::new();
+  let context = ContextBuilder::new()
+    .with_depth_buffer(24);
+
   let display = Display::new(window, context, &events_loop).unwrap();
 
   handle_events(display, &mut events_loop);
