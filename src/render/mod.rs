@@ -1,25 +1,30 @@
+extern crate image;
 extern crate glium;
 
 use self::glium::{Display, Surface, VertexBuffer, Program, index};
 use self::glium::glutin::*;
+use self::glium::backend::Facade;
+use self::glium::texture::{Texture2d, RawImage2d};
 
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::BufReader;
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
-  position: [f32; 2]
+  position: [f32; 2],
+  tex_coords: [f32; 2]
 }
 
 impl Vertex {
-  fn new(x: f32, y: f32) -> Vertex {
-    Vertex { position: [x, y] }
+  fn new(x: f32, y: f32, tx: f32, ty: f32) -> Vertex {
+    Vertex { position: [x, y], tex_coords: [tx, ty] }
   }
 }
 
-implement_vertex!(Vertex, position);
+implement_vertex!(Vertex, position, tex_coords);
 
-fn get_shader_src<'a>(name: &str) -> (String, String) {
+fn get_shader<T: Facade>(name: &str, display: &T) -> Program {
   let mut vert_src = String::new();
   let mut frag_src = String::new();
 
@@ -32,24 +37,38 @@ fn get_shader_src<'a>(name: &str) -> (String, String) {
   vert_file.read_to_string(&mut vert_src).unwrap();
   frag_file.read_to_string(&mut frag_src).unwrap();
 
-  (vert_src, frag_src)
+  Program::from_source(display, &vert_src, &frag_src, None).unwrap()
+}
+
+fn get_texture<T: Facade>(name: &str, display: &T) -> Texture2d {
+  let image_path = format!("./textures/{}.png", name);
+  let image_file = File::open(image_path).unwrap();
+  let image_reader = BufReader::new(image_file);
+
+  let image = image::load(image_reader, image::PNG).unwrap().to_rgba();
+
+  let image_dimensions = image.dimensions();
+  let image = RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+
+  Texture2d::new(display, image).unwrap()
 }
 
 fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let mut closed = false;
 
-  let v1 = Vertex::new(-0.5, -0.5);
-  let v2 = Vertex::new(0.0, 0.5);
-  let v3 = Vertex::new(0.5, -0.15);
+  let v1 = Vertex::new(-0.5, -0.5, 0.0, 0.0);
+  let v2 = Vertex::new(0.0, 0.5, 0.0, 1.0);
+  let v3 = Vertex::new(0.5, -0.15, 1.0, 0.0);
 
   let shape = vec![v1, v2, v3];
   let vertex_buffer = VertexBuffer::new(&display, &shape).unwrap();
   let indices = index::NoIndices(index::PrimitiveType::TrianglesList);
 
-  let (vertex, fragment) = get_shader_src("Basic");
-  let shader = Program::from_source(&display, &vertex, &fragment, None).unwrap();
+  let shader = get_shader("Basic", &display);
+  let texture = get_texture("hello", &display);
 
   let mut t: f32 = -0.5;
+  let mut x: f32 = -0.5;
 
   while !closed {
     t += 0.0002;
@@ -63,8 +82,10 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
         [ t.cos(), t.sin(), 0.0, 0.0],
         [-t.sin(), t.cos(), 0.0, 0.0],
         [0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0f32],
-      ]
+        [0.5, 0.0, 0.5, 1.0f32],
+      ],
+      player_x: x,
+      tex: &texture
     };
 
     let mut target = display.draw();
@@ -78,6 +99,25 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
         Event::WindowEvent { event, .. } => {
           match event {
             WindowEvent::Closed => closed = true,
+            WindowEvent::KeyboardInput { input, .. } => {
+              match input.scancode {
+                0 => {
+                  println!("A");
+                },
+                1 => {
+                  println!("S");
+                  x -= 0.005;
+                },
+                2 => {
+                  println!("D");
+                },
+                13 => {
+                  println!("W");
+                  x += 0.005;
+                },
+                _ => ()
+              }
+            }
             _ => (),
           }
         },
