@@ -1,5 +1,8 @@
 extern crate lumina;
 
+#[macro_use]
+extern crate glium;
+
 use lumina::*;
 
 fn voxel_test() {
