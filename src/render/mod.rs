@@ -147,11 +147,13 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       ]
     };
 
+    let light = [1.4, 0.4, -0.7f32];
+
     let uniforms = uniform! {
       model: model,
       view: view,
       perspective: perspective,
-      u_light: [-1.0, 0.4, 0.9f32]
+      u_light: light
     };
 
     let params = glium::DrawParameters {
