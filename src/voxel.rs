@@ -41,24 +41,28 @@ impl VoxelType {
 		VoxelInstance::new(self.clone())
 	}
 
-  pub fn name(&mut self, name: &str) -> &mut Self {
-    self.name = name.to_string();
-    self
+  pub fn name(&self, name: &str) -> Self {
+    let mut v = self.clone();
+    v.name = name.to_string();
+    v
   }
 
-  pub fn texture(&mut self, src: &str) -> &mut Self {
-    self.texture = src.to_string();
-    self
+  pub fn texture(&self, src: &str) -> Self {
+    let mut v = self.clone();
+    v.texture = src.to_string();
+    v
   }
 
-  pub fn hardness(&mut self, level: u32) -> &mut Self {
-    self.hardness = level;
-    self
+  pub fn hardness(&self, level: u32) -> Self {
+    let mut v = self.clone();
+    v.hardness = level;
+    v
   }
 
-  pub fn brightness(&mut self, level: u32) -> &mut Self {
-    self.brightness = level;
-    self
+  pub fn brightness(&self, level: u32) -> Self {
+    let mut v = self.clone();
+    v.brightness = level;
+    v
   }
 }
 
