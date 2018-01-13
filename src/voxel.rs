@@ -38,7 +38,7 @@ impl VoxelType {
 
 	/// Creates an instance of a Voxel
 	pub fn create(&self) -> VoxelInstance {
-		VoxelInstance::new(self.clone())
+		VoxelInstance::new(self)
 	}
 
   pub fn name(&self, name: &str) -> Self {
@@ -67,14 +67,14 @@ impl VoxelType {
 }
 
 #[derive(Debug, Clone)]
-pub struct VoxelInstance {
-	pub kind: VoxelType,
+pub struct VoxelInstance<'a> {
+	pub kind: &'a VoxelType,
 	pub pos: Coord
 }
 
-impl VoxelInstance {
+impl<'a> VoxelInstance<'a> {
 	/// Returns an instance of a Voxel
-	pub fn new(kind: VoxelType) -> VoxelInstance {
+	pub fn new(kind: &'a VoxelType) -> VoxelInstance {
 		VoxelInstance {
 			kind,
 			pos: Coord::blank()
