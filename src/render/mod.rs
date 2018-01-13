@@ -1,7 +1,7 @@
 extern crate image;
 extern crate glium;
 
-use self::glium::{Display, Surface, VertexBuffer, Program, index};
+use self::glium::{Display, Surface, VertexBuffer, IndexBuffer, Program, index};
 use self::glium::glutin::*;
 use self::glium::backend::Facade;
 use self::glium::texture::{Texture2d, RawImage2d};
@@ -9,6 +9,8 @@ use self::glium::texture::{Texture2d, RawImage2d};
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
+
+mod teapot;
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
@@ -61,8 +63,10 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let v3 = Vertex::new(0.5, -0.15, 1.0, 0.0);
 
   let shape = vec![v1, v2, v3];
-  let vertex_buffer = VertexBuffer::new(&display, &shape).unwrap();
-  let indices = index::NoIndices(index::PrimitiveType::TrianglesList);
+
+  let positions = VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
+  let normals = VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
+  let indices = IndexBuffer::new(&display, index::PrimitiveType::TrianglesList, &teapot::INDICES).unwrap();
 
   let shader = get_shader("Basic", &display);
   let texture = get_texture("hello", &display);
@@ -77,13 +81,15 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
         t = -0.5;
     }
 
+    let matrix = [
+      [0.01, 0.0, 0.0, 0.0],
+      [0.0, 0.01, 0.0, 0.0],
+      [0.0, 0.0, 0.01, 0.0],
+      [0.0, 0.0, 0.01, 1.0f32]
+    ];
+
     let uniforms = uniform! {
-      matrix: [
-        [ t.cos(), t.sin(), 0.0, 0.0],
-        [-t.sin(), t.cos(), 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0],
-        [0.5, 0.0, 0.5, 1.0f32],
-      ],
+      matrix: matrix,
       player_x: x,
       tex: &texture
     };
@@ -91,7 +97,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
     let mut target = display.draw();
 
     target.clear_color(0.93, 0.93, 0.93, 1.0);
-    target.draw(&vertex_buffer, &indices, &shader, &uniforms, &Default::default()).unwrap();
+    target.draw((&positions, &normals), &indices, &shader, &uniforms, &Default::default()).unwrap();
     target.finish().unwrap();
 
     events_loop.poll_events(|ev| {
