@@ -3,26 +3,30 @@ extern crate lumina;
 use lumina::*;
 
 fn main() {
-  let Grass = Voxel::new("voxel:grass").name("Grass");
-  let grass = Grass.create().moveTo(5, 200, 5);
+  let mut Grass = VoxelType::new("voxel:grass");
+  Grass.name("Grass");
 
-  let Stone = Voxel::new("voxel:stone")
-    .name("Stone")
-    .hardness(10)
-    .brightness(5)
-    .texture("voxel_stone");
+  let mut grass = Grass.create();
+  &grass.move_to(5, 200, 5);
 
-  let mut stone = Stone::new();
-  &stone.moveTo(2, 50, 2);
+  let mut Stone = VoxelType::new("voxel:stone");
+  Stone.name("Stone");
+  Stone.hardness(10);
+  Stone.brightness(5);
+  Stone.texture("voxel_stone");
 
-  let Glowstone = Stone
-    .name("Glowstone")
-    .texture("voxel_glowstone")
-    .brightness(20);
+  let mut stone = Stone.create();
+  &stone.move_to(2, 50, 2);
 
-  let glowstone = Glowstone::new().moveTo(0, 0, 0);
+  let mut Glowstone = Stone.clone();
+  Glowstone.name("Glowstone");
+  Glowstone.texture("voxel_glowstone");
+  Glowstone.brightness(20);
 
-  let blocks: Vec<Voxel> = vec![grass, stone, ];
-  println!("{:?}", blocks.get(0).unwrap());
+  let mut glowstone = Glowstone.create();
+  &glowstone.move_to(70, 100, 70);
+
+  let blocks: Vec<VoxelInstance> = vec![grass, stone, glowstone];
+  println!("{:?}", blocks);
 }
 

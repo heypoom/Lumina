@@ -1,4 +1,4 @@
-extern crate lumina;
+use coord::Coord;
 
 /// What will happen when we place this voxel?
 pub trait Place {}
@@ -10,7 +10,8 @@ pub trait Destroy {}
 pub trait Interact {}
 
 /// VoxelType defines the many different Types of Voxel
-struct VoxelType {
+#[derive(Debug, Clone)]
+pub struct VoxelType {
 	id: String,
 	name: String,
 	texture: String,
@@ -19,17 +20,17 @@ struct VoxelType {
 	brightness: u32,
 }
 
-static MISSING_TEXTURE: &str = String::from("missing_texture")
-static BLOCK_MODEL: &str = String::from("block");
+static MISSING_TEXTURE: &str = "missing_texture";
+static BLOCK_MODEL: &str = "block";
 
 impl VoxelType {
 	/// Creates a Voxel Type Builder, which allows chaining of Properties in the VoxelType.
 	pub fn new(id: &str) -> VoxelType {
 		VoxelType {
-			id: id.to_string(),
+			id: String::from(id),
 			name: String::from("Unnamed Voxel"),
-			texture: MISSING_TEXTURE,
-			model: BLOCK_MODEL,
+			texture: String::from(MISSING_TEXTURE),
+			model: String::from(BLOCK_MODEL),
 			hardness: 5,
 			brightness: 5
 		}
@@ -37,19 +38,34 @@ impl VoxelType {
 
 	/// Creates an instance of a Voxel
 	pub fn create(&self) -> VoxelInstance {
-		VoxelInstance::new(*self)
+		VoxelInstance::new(self.clone())
 	}
 
-	pub fn name(&self, name: String) -> VoxelType {
-		let voxel = *self.clone();
-		voxel.name = name;
-		voxel
-	}
+  pub fn name(&mut self, name: &str) -> &mut Self {
+    self.name = name.to_string();
+    self
+  }
+
+  pub fn texture(&mut self, src: &str) -> &mut Self {
+    self.texture = src.to_string();
+    self
+  }
+
+  pub fn hardness(&mut self, level: u32) -> &mut Self {
+    self.hardness = level;
+    self
+  }
+
+  pub fn brightness(&mut self, level: u32) -> &mut Self {
+    self.brightness = level;
+    self
+  }
 }
 
-struct VoxelInstance {
-	kind: VoxelType,
-	position: Coord
+#[derive(Debug, Clone)]
+pub struct VoxelInstance {
+	pub kind: VoxelType,
+	pub pos: Coord
 }
 
 impl VoxelInstance {
@@ -57,8 +73,12 @@ impl VoxelInstance {
 	pub fn new(kind: VoxelType) -> VoxelInstance {
 		VoxelInstance {
 			kind,
-			coord: Coord::blank()
+			pos: Coord::blank()
 		}
 	}
+
+  pub fn move_to(&mut self, x: u32, y: u32, z: u32) {
+    self.pos.set(x, y, z);
+  }
 }
 
