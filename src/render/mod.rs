@@ -91,7 +91,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
     let uniforms = uniform! {
       matrix: matrix,
       player_x: x,
-      tex: &texture
+      u_light: [-1.0, 0.4, 0.9f32]
     };
 
     let mut target = display.draw();
@@ -112,14 +112,14 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
                 },
                 1 => {
                   println!("S");
-                  x -= 0.005;
+                  x -= 0.1;
                 },
                 2 => {
                   println!("D");
                 },
                 13 => {
                   println!("W");
-                  x += 0.005;
+                  x += 0.1;
                 },
                 _ => ()
               }
