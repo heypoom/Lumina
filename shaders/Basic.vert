@@ -5,10 +5,11 @@ in vec3 normal;
 
 out vec3 v_normal;
 
-uniform float player_x;
 uniform mat4 matrix;
+uniform mat4 perspective;
+uniform float player_x;
 
 void main() {
   v_normal = transpose(inverse(mat3(matrix))) * normal;
-  gl_Position = matrix * vec4(position + player_x, 1.0);
+  gl_Position = perspective * matrix * vec4(position + player_x, 1.0);
 }

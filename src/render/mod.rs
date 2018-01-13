@@ -18,12 +18,6 @@ pub struct Vertex {
   tex_coords: [f32; 2]
 }
 
-impl Vertex {
-  fn new(x: f32, y: f32, tx: f32, ty: f32) -> Vertex {
-    Vertex { position: [x, y], tex_coords: [tx, ty] }
-  }
-}
-
 implement_vertex!(Vertex, position, tex_coords);
 
 fn get_shader<T: Facade>(name: &str, display: &T) -> Program {
@@ -58,12 +52,6 @@ fn get_texture<T: Facade>(name: &str, display: &T) -> Texture2d {
 fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let mut closed = false;
 
-  let v1 = Vertex::new(-0.5, -0.5, 0.0, 0.0);
-  let v2 = Vertex::new(0.0, 0.5, 0.0, 1.0);
-  let v3 = Vertex::new(0.5, -0.15, 1.0, 0.0);
-
-  let shape = vec![v1, v2, v3];
-
   let positions = VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
   let normals = VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
   let indices = IndexBuffer::new(&display, index::PrimitiveType::TrianglesList, &teapot::INDICES).unwrap();
@@ -85,11 +73,34 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       [0.01, 0.0, 0.0, 0.0],
       [0.0, 0.01, 0.0, 0.0],
       [0.0, 0.0, 0.01, 0.0],
-      [0.0, 0.0, 0.01, 1.0f32]
+      [0.0, 0.0, 2.0, 1.0f32]
     ];
+
+    let mut target = display.draw();
+    let vertices = (&positions, &normals);
+
+    let perspective = {
+      let (width, height) = target.get_dimensions();
+      let aspect_ratio = height as f32 / width as f32;
+
+      let PI: f32 = 3.141592;
+      let fov: f32 = PI / 3.0;
+      let zfar = 1024.0;
+      let znear = 0.1;
+
+      let f = 1.0 / (fov / 2.0).tan();
+
+      [
+        [f * aspect_ratio, 0.0, 0.0, 0.0],
+        [0.0, f, 0.0, 0.0],
+        [0.0, 0.0, (zfar + znear) / (zfar - znear), 1.0],
+        [0.0, 0.0, -(2.0 * zfar * znear) / (zfar - znear), 0.0],
+      ]
+    };
 
     let uniforms = uniform! {
       matrix: matrix,
+      perspective: perspective,
       player_x: x,
       u_light: [-1.0, 0.4, 0.9f32]
     };
@@ -102,9 +113,6 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       },
       ..Default::default()
     };
-
-    let mut target = display.draw();
-    let vertices = (&positions, &normals);
 
     target.clear_color_and_depth((0.93, 0.93, 0.93, 1.0), 1.0);
     target.draw(vertices, &indices, &shader, &uniforms, &params).unwrap();
