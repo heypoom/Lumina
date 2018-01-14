@@ -187,7 +187,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
 
   let shader = get_shader("Basic", &display);
 
-  let (diffuse, normal_map, specular_map) = load_texture("command_block", &display);
+  let (diffuse, normal_map, specular_map) = load_texture("diamond_ore", &display);
 
   let mut t: f32 = -0.5;
 
