@@ -47,7 +47,7 @@ void main() {
   vec3 half_direction = normalize(normalize(u_light) + camera_dir);
   vec3 surface_direction = normalize(camera_pos + camera_dir);
 
-  float specular = pow(max(dot(half_direction, reflect(-surface_direction, real_normal)), 0.0), 48.0);
+  float specular = pow(max(dot(half_direction, reflect(surface_direction, real_normal)), 0.0), 48.0);
 
   color = vec4(ambient_color + diffuse * diffuse_color + specular * specular_color, 1.0);
 }
