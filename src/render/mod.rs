@@ -1,10 +1,10 @@
-extern crate image;
 extern crate glium;
+extern crate image;
 
-use self::glium::{Display, Surface, VertexBuffer, IndexBuffer, Program, index};
+use self::glium::{index, Display, IndexBuffer, Program, Surface, VertexBuffer};
 use self::glium::glutin::*;
 use self::glium::backend::Facade;
-use self::glium::texture::{SrgbTexture2d, Texture2d, RawImage2d};
+use self::glium::texture::{RawImage2d, SrgbTexture2d, Texture2d};
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -14,10 +14,10 @@ use std::io::BufReader;
 pub struct Vertex {
   pos: [f32; 3],
   normal: [f32; 3],
-  tex_coords: [f32; 2]
+  uv: [f32; 2],
 }
 
-implement_vertex!(Vertex, pos, normal, tex_coords);
+implement_vertex!(Vertex, pos, normal, uv);
 
 fn get_shader<T: Facade>(name: &str, display: &T) -> Program {
   let mut vert_src = String::new();
@@ -59,7 +59,7 @@ fn view_matrix(pos: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f32; 4]
   let s = [
     up[1] * f[2] - up[2] * f[1],
     up[2] * f[0] - up[0] * f[2],
-    up[0] * f[1] - up[1] * f[0]
+    up[0] * f[1] - up[1] * f[0],
   ];
 
   let s_norm = {
@@ -72,13 +72,13 @@ fn view_matrix(pos: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f32; 4]
   let u = [
     f[1] * s_norm[2] - f[2] * s_norm[1],
     f[2] * s_norm[0] - f[0] * s_norm[2],
-    f[0] * s_norm[1] - f[1] * s_norm[0]
+    f[0] * s_norm[1] - f[1] * s_norm[0],
   ];
 
   let p = [
     -pos[0] * s_norm[0] - pos[1] * s_norm[1] - pos[2] * s_norm[2],
     -pos[0] * u[0] - pos[1] * u[1] - pos[2] * u[2],
-    -pos[0] * f[0] - pos[1] * f[1] - pos[2] * f[2]
+    -pos[0] * f[0] - pos[1] * f[1] - pos[2] * f[2],
   ];
 
   [
@@ -122,14 +122,67 @@ fn load_texture<T: Facade>(name: &str, display: &T) -> (SrgbTexture2d, Texture2d
 fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let mut closed = false;
 
+  #[cfg_attr(rustfmt, rustfmt_skip)]
   let shape = VertexBuffer::new(&display, &[
-    Vertex { pos: [-1.0,  1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [0.0, 1.0] },
-    Vertex { pos: [ 1.0,  1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [1.0, 1.0] },
-    Vertex { pos: [-1.0, -1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [0.0, 0.0] },
-    Vertex { pos: [ 1.0, -1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [1.0, 0.0] }
+    // Front
+    Vertex { pos: [-1.0, -1.0,  1.0], normal: [ 0.0,  0.0,  1.0], uv: [1.0, 0.0] },
+    Vertex { pos: [ 1.0, -1.0,  1.0], normal: [ 0.0,  0.0,  1.0], uv: [0.0, 0.0] },
+    Vertex { pos: [ 1.0,  1.0,  1.0], normal: [ 0.0,  0.0,  1.0], uv: [0.0, 1.0] },
+    Vertex { pos: [-1.0,  1.0,  1.0], normal: [ 0.0,  0.0,  1.0], uv: [1.0, 1.0] },
+
+    // Right
+    Vertex { pos: [ 1.0, -1.0,  1.0], normal: [ 1.0,  0.0,  0.0], uv: [1.0, 1.0] },
+    Vertex { pos: [ 1.0, -1.0, -1.0], normal: [ 1.0,  0.0,  0.0], uv: [1.0, 0.0] },
+    Vertex { pos: [ 1.0,  1.0, -1.0], normal: [ 1.0,  0.0,  0.0], uv: [0.0, 0.0] },
+    Vertex { pos: [ 1.0,  1.0,  1.0], normal: [ 1.0,  0.0,  0.0], uv: [0.0, 1.0] },
+
+    // Back
+    Vertex { pos: [-1.0, -1.0, -1.0], normal: [ 0.0,  0.0, -1.0], uv: [0.0, 0.0] },
+    Vertex { pos: [-1.0,  1.0, -1.0], normal: [ 0.0,  0.0, -1.0], uv: [0.0, 1.0] },
+    Vertex { pos: [ 1.0,  1.0, -1.0], normal: [ 0.0,  0.0, -1.0], uv: [1.0, 1.0] },
+    Vertex { pos: [ 1.0, -1.0, -1.0], normal: [ 0.0,  0.0, -1.0], uv: [1.0, 0.0] },
+
+    // Left
+    Vertex { pos: [-1.0, -1.0,  1.0], normal: [-1.0,  0.0,  0.0], uv: [0.0, 1.0] },
+    Vertex { pos: [-1.0,  1.0,  1.0], normal: [-1.0,  0.0,  0.0], uv: [1.0, 1.0] },
+    Vertex { pos: [-1.0,  1.0, -1.0], normal: [-1.0,  0.0,  0.0], uv: [1.0, 0.0] },
+    Vertex { pos: [-1.0, -1.0, -1.0], normal: [-1.0,  0.0,  0.0], uv: [0.0, 0.0] },
+
+    // Bottom
+    Vertex { pos: [-1.0, -1.0,  1.0], normal: [ 0.0, -1.0,  0.0], uv: [0.0, 1.0] },
+    Vertex { pos: [-1.0, -1.0, -1.0], normal: [ 0.0, -1.0,  0.0], uv: [0.0, 0.0] },
+    Vertex { pos: [ 1.0, -1.0, -1.0], normal: [ 0.0, -1.0,  0.0], uv: [1.0, 0.0] },
+    Vertex { pos: [ 1.0, -1.0,  1.0], normal: [ 0.0, -1.0,  0.0], uv: [1.0, 1.0] },
+
+    // Top
+    Vertex { pos: [-1.0,  1.0,  1.0], normal: [ 0.0,  1.0,  0.0], uv: [1.0, 1.0] },
+    Vertex { pos: [ 1.0,  1.0,  1.0], normal: [ 0.0,  1.0,  0.0], uv: [0.0, 1.0] },
+    Vertex { pos: [ 1.0,  1.0, -1.0], normal: [ 0.0,  1.0,  0.0], uv: [1.0, 0.0] },
+    Vertex { pos: [-1.0,  1.0, -1.0], normal: [ 0.0,  1.0,  0.0], uv: [1.0, 0.0] },
   ]).unwrap();
 
-  let indices = index::NoIndices(index::PrimitiveType::TriangleStrip);
+  #[cfg_attr(rustfmt, rustfmt_skip)]
+  let indices_list = &[
+    // Front
+    0u16, 2, 1, 0, 3, 2,
+
+    // Right
+    4, 6, 5, 4, 7, 6,
+
+    // Back
+    8, 10, 9, 8, 11, 10,
+
+    // Left
+    12, 14, 13, 12, 15, 14,
+
+    // Bottom
+    16, 18, 17, 16, 19, 18,
+
+    // Top
+    20, 22, 21, 20, 23, 22,
+  ];
+
+  let indices = IndexBuffer::new(&display, index::PrimitiveType::TrianglesList, indices_list).unwrap();
 
   let shader = get_shader("Basic", &display);
 
@@ -143,27 +196,24 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
     t += 0.0002;
 
     if t > 0.5 {
-        t = -0.5;
+      t = -0.5;
     }
 
     let model = [
       [1.0, 0.0, 0.0, 0.0],
       [0.0, 1.0, 0.0, 0.0],
       [0.0, 0.0, 1.0, 0.0],
-      [0.0, 0.0, z, 1.0f32]
+      [0.0, 0.0, z, 1.0f32],
     ];
 
-    let view = view_matrix(
-      &[0.5, 0.2, -3.0],
-      &[-0.5, -0.0, 3.0],
-      &[0.0, 1.0, 0.0]
-    );
+    let view = view_matrix(&[0.5, 0.2, -3.0], &[-0.5, -0.0, 3.0], &[0.0, 1.0, 0.0]);
 
     let mut target = display.draw();
 
     let perspective = perspective(target.get_dimensions());
 
-    let light = [1.7, 0.3, 0.7f32];
+    // let light = [1.7, 0.3, 0.7f32];
+    let light = [-1.0, 0.4, 0.9f32];
 
     let uniforms = uniform! {
       model: model,
@@ -186,40 +236,36 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
     };
 
     target.clear_color_and_depth((0.93, 0.93, 0.93, 1.0), 1.0);
+
     target.draw(&shape, &indices, &shader, &uniforms, &params).unwrap();
+
     target.finish().unwrap();
 
-    events_loop.poll_events(|ev| {
-      match ev {
-        Event::WindowEvent { event, .. } => {
-          match event {
-            WindowEvent::Closed => closed = true,
-            WindowEvent::KeyboardInput { input, .. } => {
-              match input.scancode {
-                13 => {
-                  println!("W");
-                  z -= 0.1;
-                },
-                0 => {
-                  println!("A");
-                  x -= 0.1;
-                },
-                1 => {
-                  println!("S");
-                  z += 0.1;
-                },
-                2 => {
-                  println!("D");
-                  x += 0.1;
-                }
-                _ => ()
-              }
-            }
-            _ => (),
+    events_loop.poll_events(|ev| match ev {
+      Event::WindowEvent { event, .. } => match event {
+        WindowEvent::Closed => closed = true,
+        WindowEvent::KeyboardInput { input, .. } => match input.scancode {
+          13 => {
+            println!("W");
+            z -= 0.1;
           }
+          0 => {
+            println!("A");
+            x -= 0.1;
+          }
+          1 => {
+            println!("S");
+            z += 0.1;
+          }
+          2 => {
+            println!("D");
+            x += 0.1;
+          }
+          _ => (),
         },
         _ => (),
-      }
+      },
+      _ => (),
     });
   }
 }
@@ -231,11 +277,9 @@ pub fn init() {
     .with_dimensions(1024, 768)
     .with_title("Lumina 0.1");
 
-  let context = ContextBuilder::new()
-    .with_depth_buffer(24);
+  let context = ContextBuilder::new().with_depth_buffer(24);
 
   let display = Display::new(window, context, &events_loop).unwrap();
 
   handle_events(display, &mut events_loop);
 }
-

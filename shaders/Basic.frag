@@ -2,7 +2,7 @@
 
 in vec3 v_normal;
 in vec3 v_position;
-in vec2 v_tex_coords;
+in vec2 v_uv;
 
 out vec4 color;
 
@@ -30,13 +30,13 @@ mat3 cotangent_frame(vec3 normal, vec3 pos, vec2 uv) {
 }
 
 void main() {
-  vec3 diffuse_color = texture(diffuse_tex, v_tex_coords).rgb;
-  vec3 specular_color = texture(specular_tex, v_tex_coords).rgb;
+  vec3 diffuse_color = texture(diffuse_tex, v_uv).rgb;
+  vec3 specular_color = texture(specular_tex, v_uv).rgb;
   vec3 ambient_color = diffuse_color * 0.1;
 
-  vec3 normal_map = texture(normal_tex, v_tex_coords).rgb;
+  vec3 normal_map = texture(normal_tex, v_uv).rgb;
 
-  mat3 tbn = cotangent_frame(v_normal, v_position, v_tex_coords);
+  mat3 tbn = cotangent_frame(v_normal, v_position, v_uv);
   vec3 real_normal = normalize(tbn * -(normal_map * 2.0 - 1.0));
 
   float diffuse = max(dot(real_normal, normalize(u_light)), 0.0);
