@@ -191,9 +191,9 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
 
   let mut t: f32 = -0.5;
 
-  let mut x: f32 = -0.5;
+  let mut x: f32 = -3.5;
   let mut y: f32 = -0.5;
-  let mut z: f32 = 2.0;
+  let mut z: f32 = 4.5;
 
   // Vertical (Up/Down) Angle
   let mut pitch: f32 = -3.89;
