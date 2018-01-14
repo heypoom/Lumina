@@ -208,9 +208,12 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       t = -0.5;
     }
 
+    // t.cos() t.sin();
+    // -t.sin() t.cos();
+
     let model = [
-      [t.cos(), t.sin(), 0.0, 0.0],
-      [-t.sin(), t.cos(), 0.0, 0.0],
+      [1.0, 0.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0, 0.0],
       [0.0, 0.0, 1.0, 0.0],
       [0.0, 0.0, 0.0, 1.0f32],
     ];
@@ -270,19 +273,19 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
           match input.scancode {
             // W; Moves Forward
             13 => {
-              z -= 0.1
+              x -= 0.1
             }
             // A; Moves Left
             0 => {
-               x += 0.1
+              z -= 0.1
             }
-            // S; Moves Backward -> Left
+            // S; Moves Backward
             1 => {
-              z += 0.1
+              x += 0.1
             }
             // D; Moves Right
             2 => {
-              x -= 0.1
+              z += 0.1
             }
             // Space Bar; Jumps Up
             49 => {
