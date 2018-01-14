@@ -20,7 +20,7 @@ pub use self::game::Game;
 pub const PI: f32 = 3.141592;
 
 pub fn init() {
-  let mut events_loop = EventsLoop::new();
+  let events_loop = EventsLoop::new();
 
   let window = WindowBuilder::new()
     .with_dimensions(1024, 768)

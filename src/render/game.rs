@@ -1,6 +1,8 @@
 extern crate glium;
 
-use glium::{Display, Program, Surface, DrawParameters};
+use glium::{Display, Program, Surface, Depth, DrawParameters};
+use glium::draw_parameters::{DepthTest, BackfaceCullingMode};
+
 use super::camera::Camera;
 use super::texture::Texture;
 use super::cube;
@@ -13,16 +15,6 @@ pub struct Game<'a> {
   pub texture: Texture,
   pub shader: Program
 }
-
-static draw_params: DrawParameters = DrawParameters {
-  depth: glium::Depth {
-    test: glium::draw_parameters::DepthTest::IfLess,
-    write: true,
-    ..Default::default()
-  },
-  backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-  ..Default::default()
-};
 
 impl<'a> Game<'a> {
   pub fn new(display: &Display) -> Game {
@@ -60,13 +52,16 @@ impl<'a> Game<'a> {
 
     let mut target = self.display.draw();
 
-    let (model, perspective) = self.camera.render(&target);
-    let shape = cube::new_cube(self.display);
+    let (view, perspective) = self.camera.render(&target);
+    let (shape, indices) = cube::new_cube(self.display);
 
     // let light = [1.7, 0.3, 0.7f32];
     let light = [-1.0, 0.4, 0.9f32];
 
     let uniforms = uniform! {
+      model: model,
+      view: view,
+      perspective: perspective,
       diffuse_tex: &self.texture.diffuse,
       normal_tex: &self.texture.normal,
       specular_tex: &self.texture.specular,
@@ -75,9 +70,19 @@ impl<'a> Game<'a> {
 
     let bg_color = (0.93, 0.93, 0.93, 1.0);
 
+    let params = DrawParameters {
+      depth: Depth {
+        test: DepthTest::IfLess,
+        write: true,
+        ..Default::default()
+      },
+      backface_culling: BackfaceCullingMode::CullClockwise,
+      ..Default::default()
+    };
+
     target.clear_color_and_depth(bg_color, 1.0);
 
-    target.draw(&shape, &indices, &shader, &uniforms, &draw_params).unwrap();
+    target.draw(&shape, &indices, &self.shader, &uniforms, &params).unwrap();
 
     target.finish().unwrap();
   }

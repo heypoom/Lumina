@@ -17,15 +17,15 @@ const ARROW_RIGHT: u32 = 124;
 // J; 38 => {}
 // K; 40 => {}
 
-pub fn handle_keyboard(scancode: u32, game: &Game) {
-  let camera = game.camera;
+pub fn handle_keyboard(scancode: u32, game: &mut Game) {
+  let camera = &mut game.camera;
 
   match scancode {
     MOVE_FORWARD => {
       camera.add_z(-0.1)
     }
     MOVE_LEFT => {
-       camera.add_x(0.1)
+     camera.add_x(0.1)
     }
     MOVE_BACKWARD => {
       camera.add_z(0.1)
