@@ -7,7 +7,6 @@ in vec2 tex_coords;
 out vec3 v_normal;
 out vec3 v_position;
 out vec2 v_tex_coords;
-out mat4 v_view_model;
 
 uniform mat4 perspective;
 uniform mat4 view;
@@ -15,7 +14,6 @@ uniform mat4 model;
 
 void main() {
   mat4 modelview = view * model;
-  v_view_model = modelview;
 
   v_tex_coords = tex_coords;
   v_normal = transpose(inverse(mat3(modelview))) * normal;

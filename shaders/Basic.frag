@@ -3,7 +3,6 @@
 in vec3 v_normal;
 in vec3 v_position;
 in vec2 v_tex_coords;
-in mat4 v_view_model;
 
 out vec4 color;
 
@@ -43,9 +42,8 @@ void main() {
   float diffuse = max(dot(real_normal, normalize(u_light)), 0.0);
 
   vec3 camera_dir = normalize(-v_position);
-  vec3 camera_pos = normalize(vec3(-v_view_model[3]) * mat3(v_view_model));
   vec3 half_direction = normalize(normalize(u_light) + camera_dir);
-  vec3 surface_direction = normalize(camera_pos + camera_dir);
+  vec3 surface_direction = normalize(camera_dir);
 
   float specular = pow(max(dot(half_direction, reflect(surface_direction, real_normal)), 0.0), 48.0);
 

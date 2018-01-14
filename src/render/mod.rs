@@ -108,6 +108,17 @@ fn perspective(dimensions: (u32, u32)) -> [[f32; 4]; 4] {
   ]
 }
 
+fn load_texture<T: Facade>(name: &str, display: &T) -> (SrgbTexture2d, Texture2d, Texture2d) {
+  let normal_name = format!("{}_n", name);
+  let specular_name = format!("{}_s", name);
+
+  let diffuse = SrgbTexture2d::new(display, raw_texture(name)).unwrap();
+  let normal = Texture2d::new(display, raw_texture(&normal_name)).unwrap();
+  let specular = Texture2d::new(display, raw_texture(&specular_name)).unwrap();
+
+  (diffuse, normal, specular)
+}
+
 fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let mut closed = false;
 
@@ -122,9 +133,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
 
   let shader = get_shader("Basic", &display);
 
-  let diffuse = SrgbTexture2d::new(&display, raw_texture("lapis_block")).unwrap();
-  let normal_map = Texture2d::new(&display, raw_texture("lapis_block_n")).unwrap();
-  let specular_map = Texture2d::new(&display, raw_texture("lapis_block_s")).unwrap();
+  let (diffuse, normal_map, specular_map) = load_texture("command_block", &display);
 
   let mut t: f32 = -0.5;
   let mut x: f32 = -0.5;
@@ -154,7 +163,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
 
     let perspective = perspective(target.get_dimensions());
 
-    let light = [1.7, 0.6, 0.9f32];
+    let light = [1.7, 0.3, 0.7f32];
 
     let uniforms = uniform! {
       model: model,
