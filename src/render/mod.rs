@@ -12,12 +12,12 @@ use std::io::BufReader;
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
-  position: [f32; 3],
+  pos: [f32; 3],
   normal: [f32; 3],
   tex_coords: [f32; 2]
 }
 
-implement_vertex!(Vertex, position, normal, tex_coords);
+implement_vertex!(Vertex, pos, normal, tex_coords);
 
 fn get_shader<T: Facade>(name: &str, display: &T) -> Program {
   let mut vert_src = String::new();
@@ -47,7 +47,7 @@ fn raw_texture(name: &str) -> RawImage2d<u8> {
   RawImage2d::from_raw_rgba_reversed(raw, dimensions)
 }
 
-fn view_matrix(position: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f32; 4]; 4] {
+fn view_matrix(pos: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f32; 4]; 4] {
   let f = {
     let f = direction;
     let len = f[0] * f[0] + f[1] * f[1] + f[2] * f[2];
@@ -76,9 +76,9 @@ fn view_matrix(position: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f3
   ];
 
   let p = [
-    -position[0] * s_norm[0] - position[1] * s_norm[1] - position[2] * s_norm[2],
-    -position[0] * u[0] - position[1] * u[1] - position[2] * u[2],
-    -position[0] * f[0] - position[1] * f[1] - position[2] * f[2]
+    -pos[0] * s_norm[0] - pos[1] * s_norm[1] - pos[2] * s_norm[2],
+    -pos[0] * u[0] - pos[1] * u[1] - pos[2] * u[2],
+    -pos[0] * f[0] - pos[1] * f[1] - pos[2] * f[2]
   ];
 
   [
@@ -112,18 +112,19 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let mut closed = false;
 
   let shape = VertexBuffer::new(&display, &[
-    Vertex { position: [-1.0,  1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [0.0, 1.0] },
-    Vertex { position: [ 1.0,  1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [1.0, 1.0] },
-    Vertex { position: [-1.0, -1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [0.0, 0.0] },
-    Vertex { position: [ 1.0, -1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [1.0, 0.0] }
+    Vertex { pos: [-1.0,  1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [0.0, 1.0] },
+    Vertex { pos: [ 1.0,  1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [1.0, 1.0] },
+    Vertex { pos: [-1.0, -1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [0.0, 0.0] },
+    Vertex { pos: [ 1.0, -1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [1.0, 0.0] }
   ]).unwrap();
 
   let indices = index::NoIndices(index::PrimitiveType::TriangleStrip);
 
   let shader = get_shader("Basic", &display);
 
-  let diffuse = SrgbTexture2d::new(&display, raw_texture("PEBBLES_COLOR")).unwrap();
-  let normal_map = Texture2d::new(&display, raw_texture("PEBBLES_NRM")).unwrap();
+  let diffuse = SrgbTexture2d::new(&display, raw_texture("lapis_block")).unwrap();
+  let normal_map = Texture2d::new(&display, raw_texture("lapis_block_n")).unwrap();
+  let specular_map = Texture2d::new(&display, raw_texture("lapis_block_s")).unwrap();
 
   let mut t: f32 = -0.5;
   let mut x: f32 = -0.5;
@@ -145,7 +146,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
 
     let view = view_matrix(
       &[0.5, 0.2, -3.0],
-      &[-0.5, -0.2, 3.0],
+      &[-0.5, -0.0, 3.0],
       &[0.0, 1.0, 0.0]
     );
 
@@ -153,7 +154,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
 
     let perspective = perspective(target.get_dimensions());
 
-    let light = [1.4, 0.4, 0.7f32];
+    let light = [1.7, 0.6, 0.9f32];
 
     let uniforms = uniform! {
       model: model,
@@ -161,6 +162,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       perspective: perspective,
       diffuse_tex: &diffuse,
       normal_tex: &normal_map,
+      specular_tex: &specular_map,
       u_light: light
     };
 
