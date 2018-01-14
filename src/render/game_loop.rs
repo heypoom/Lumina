@@ -10,16 +10,14 @@ use super::input::Input;
 
 pub struct GameLoop<'a> {
   pub game: Game<'a>,
-  pub event_loop: EventsLoop,
-  pub active: bool
+  pub event_loop: EventsLoop
 }
 
 impl<'a> GameLoop<'a> {
   pub fn new(display: &Display, event_loop: EventsLoop) -> GameLoop {
     let mut game_loop = GameLoop {
       game: Game::new(display),
-      event_loop,
-      active: true
+      event_loop
     };
 
     game_loop.run();
@@ -28,40 +26,33 @@ impl<'a> GameLoop<'a> {
   }
 
   pub fn run(&mut self) {
+    let mut active = true;
+
     let this = Rc::new(RefCell::new(self));
+    let s1 = Rc::clone(&this);
     let s2 = Rc::clone(&this);
-    let s3 = Rc::clone(&this);
-    let s4 = Rc::clone(&this);
 
-    while s2.borrow().active {
-      println!("Active");
+    // FIXME: Make this not crash!
+    let mut ref_s1 = s1.borrow_mut();
+    let mut ref_s2 = s2.borrow_mut();
 
-      s3.borrow_mut().event_loop.poll_events(|event| {
-        println!("Polling");
-
+    while active {
+      ref_s1.event_loop.poll_events(|event| {
         match event {
           Event::WindowEvent { event, .. } => {
-            s4.borrow_mut().handle_window(event);
+            match event {
+              WindowEvent::Closed => active = false,
+              WindowEvent::KeyboardInput { input, .. } => {
+                ref_s2.game.handle_keyboard(input.scancode);
+                ref_s2.debug_title();
+              },
+              _ => (),
+            }
           },
           _ => {}
         }
       });
     }
-  }
-
-  pub fn handle_window(&mut self, event: WindowEvent) {
-    match event {
-      WindowEvent::Closed => self.close(),
-      WindowEvent::KeyboardInput { input, .. } => {
-        self.game.handle_keyboard(input.scancode);
-        self.debug_title();
-      },
-      _ => (),
-    }
-  }
-
-  pub fn close(&mut self) {
-    self.active = false
   }
 
   pub fn debug_title(&self) {
