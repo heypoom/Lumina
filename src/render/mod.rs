@@ -9,6 +9,7 @@ mod game_loop;
 mod cube;
 mod shader;
 mod texture;
+mod renderer;
 mod matrix;
 mod input;
 mod camera;
