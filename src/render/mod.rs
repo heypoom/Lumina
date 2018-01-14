@@ -17,6 +17,8 @@ pub struct Vertex {
   uv: [f32; 2],
 }
 
+const PI: f32 = 3.141592;
+
 implement_vertex!(Vertex, pos, normal, uv);
 
 fn get_shader<T: Facade>(name: &str, display: &T) -> Program {
@@ -93,7 +95,6 @@ fn perspective(dimensions: (u32, u32)) -> [[f32; 4]; 4] {
   let (width, height) = dimensions;
   let aspect_ratio = height as f32 / width as f32;
 
-  const PI: f32 = 3.141592;
   let fov: f32 = PI / 3.0;
   let zfar = 1024.0;
   let znear = 0.1;
@@ -194,6 +195,12 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let mut y: f32 = -0.5;
   let mut z: f32 = 2.0;
 
+  // Vertical (Up/Down) Angle
+  let mut pitch: f32 = -3.89;
+
+  // Horizontal (Left/Right) Angle
+  let mut yaw: f32 = 6.5;
+
   while !closed {
     t += 0.0002;
 
@@ -205,11 +212,17 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       [t.cos(), t.sin(), 0.0, 0.0],
       [-t.sin(), t.cos(), 0.0, 0.0],
       [0.0, 0.0, 1.0, 0.0],
-      [0.0, 0.0, z, 1.0f32],
+      [0.0, 0.0, 0.0, 1.0f32],
     ];
 
-    let cam_pos = [z, x, 1.0];
-    let cam_facing = [x, 1.0, 1.0];
+    let cam_pos = [x, y, z];
+
+    let rot_x = pitch.sin() * yaw.cos();
+    let rot_y = pitch.sin() * yaw.sin();
+    let rot_z = pitch.cos();
+
+    let cam_facing = [rot_x, rot_y, rot_z];
+
     let cam_up = [0.0, 1.0, 0.0];
 
     let view = view_matrix(&cam_pos, &cam_facing, &cam_up);
@@ -250,20 +263,52 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
     events_loop.poll_events(|ev| match ev {
       Event::WindowEvent { event, .. } => match event {
         WindowEvent::Closed => closed = true,
-        WindowEvent::KeyboardInput { input, .. } => match input.scancode {
-          13 => {
-            z -= 0.1;
+        WindowEvent::KeyboardInput { input, .. } => {
+          println!("x {}, y {}, z {}, pitch {}, yaw {}", x, y, z, pitch, yaw);
+
+          match input.scancode {
+            // W; Moves Forward
+            13 => {
+              x -= 0.1
+            }
+            // A; Moves Left
+            0 => {
+              z -= 0.1
+            }
+            // S; Moves Backward
+            1 => {
+              x += 0.1
+            }
+            // D; Moves Right
+            2 => {
+              z += 0.1
+            }
+            // +; Zoom In
+            24 => {
+              yaw += 0.1
+            }
+            // -; Zoom Out
+            27 => {
+              yaw -= 0.1
+            }
+            // J
+            38 => {
+              pitch += 0.1
+            }
+            // K
+            40 => {
+              pitch -= 0.1
+            }
+            // Space Bar; Jumps Up
+            49 => {
+              y += 0.1;
+            }
+            // Shift; Crouch Down
+            56 => {
+              y -= 0.1;
+            }
+            _ => ()
           }
-          0 => {
-            x -= 0.1;
-          }
-          1 => {
-            z += 0.1;
-          }
-          2 => {
-            x += 0.1;
-          }
-          _ => println!("Key: {}", input.scancode),
         },
         _ => (),
       },
