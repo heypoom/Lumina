@@ -4,21 +4,20 @@ extern crate glium;
 use self::glium::{Display, Surface, VertexBuffer, IndexBuffer, Program, index};
 use self::glium::glutin::*;
 use self::glium::backend::Facade;
-use self::glium::texture::{Texture2d, RawImage2d};
+use self::glium::texture::{SrgbTexture2d, Texture2d, RawImage2d};
 
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 
-mod teapot;
-
 #[derive(Copy, Clone)]
 pub struct Vertex {
-  position: [f32; 2],
+  position: [f32; 3],
+  normal: [f32; 3],
   tex_coords: [f32; 2]
 }
 
-implement_vertex!(Vertex, position, tex_coords);
+implement_vertex!(Vertex, position, normal, tex_coords);
 
 fn get_shader<T: Facade>(name: &str, display: &T) -> Program {
   let mut vert_src = String::new();
@@ -36,17 +35,16 @@ fn get_shader<T: Facade>(name: &str, display: &T) -> Program {
   Program::from_source(display, &vert_src, &frag_src, None).unwrap()
 }
 
-fn get_texture<T: Facade>(name: &str, display: &T) -> Texture2d {
+fn raw_texture(name: &str) -> RawImage2d<u8> {
   let image_path = format!("./textures/{}.png", name);
   let image_file = File::open(image_path).unwrap();
   let image_reader = BufReader::new(image_file);
 
   let image = image::load(image_reader, image::PNG).unwrap().to_rgba();
+  let dimensions = image.dimensions();
+  let raw: &[u8] = &image.into_raw();
 
-  let image_dimensions = image.dimensions();
-  let image = RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
-
-  Texture2d::new(display, image).unwrap()
+  RawImage2d::from_raw_rgba_reversed(raw, dimensions)
 }
 
 fn view_matrix(position: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f32; 4]; 4] {
@@ -91,15 +89,40 @@ fn view_matrix(position: &[f32; 3], direction: &[f32; 3], up: &[f32; 3]) -> [[f3
   ]
 }
 
+fn perspective(dimensions: (u32, u32)) -> [[f32; 4]; 4] {
+  let (width, height) = dimensions;
+  let aspect_ratio = height as f32 / width as f32;
+
+  const PI: f32 = 3.141592;
+  let fov: f32 = PI / 3.0;
+  let zfar = 1024.0;
+  let znear = 0.1;
+
+  let f = 1.0 / (fov / 2.0).tan();
+
+  [
+    [f * aspect_ratio, 0.0, 0.0, 0.0],
+    [0.0, f, 0.0, 0.0],
+    [0.0, 0.0, (zfar + znear) / (zfar - znear), 1.0],
+    [0.0, 0.0, -(2.0 * zfar * znear) / (zfar - znear), 0.0],
+  ]
+}
+
 fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let mut closed = false;
 
-  let positions = VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
-  let normals = VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
-  let indices = IndexBuffer::new(&display, index::PrimitiveType::TrianglesList, &teapot::INDICES).unwrap();
+  let shape = VertexBuffer::new(&display, &[
+    Vertex { position: [-1.0,  1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [0.0, 1.0] },
+    Vertex { position: [ 1.0,  1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [1.0, 1.0] },
+    Vertex { position: [-1.0, -1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [0.0, 0.0] },
+    Vertex { position: [ 1.0, -1.0, 0.0], normal: [0.0, 0.0, -1.0], tex_coords: [1.0, 0.0] }
+  ]).unwrap();
+
+  let indices = index::NoIndices(index::PrimitiveType::TriangleStrip);
 
   let shader = get_shader("Basic", &display);
-  let texture = get_texture("hello", &display);
+
+  let diffuse = SrgbTexture2d::new(&display, raw_texture("PEBBLES_COLOR")).unwrap();
 
   let mut t: f32 = -0.5;
   let mut x: f32 = -0.5;
@@ -113,46 +136,29 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
     }
 
     let model = [
-      [0.01, 0.0, 0.0, 0.0],
-      [0.0, 0.01, 0.0, 0.0],
-      [0.0, 0.0, 0.01, 0.0],
+      [1.0, 0.0, 0.0, 0.0],
+      [0.0, 1.0, 0.0, 0.0],
+      [0.0, 0.0, 1.0, 0.0],
       [0.0, 0.0, z, 1.0f32]
     ];
 
     let view = view_matrix(
-      &[2.0, -1.0, 1.0],
-      &[-2.0, 1.0, 1.0],
+      &[0.5, 0.2, -3.0],
+      &[-0.5, -0.2, 3.0],
       &[0.0, 1.0, 0.0]
     );
 
     let mut target = display.draw();
-    let vertices = (&positions, &normals);
 
-    let perspective = {
-      let (width, height) = target.get_dimensions();
-      let aspect_ratio = height as f32 / width as f32;
+    let perspective = perspective(target.get_dimensions());
 
-      let PI: f32 = 3.141592;
-      let fov: f32 = PI / 3.0;
-      let zfar = 1024.0;
-      let znear = 0.1;
-
-      let f = 1.0 / (fov / 2.0).tan();
-
-      [
-        [f * aspect_ratio, 0.0, 0.0, 0.0],
-        [0.0, f, 0.0, 0.0],
-        [0.0, 0.0, (zfar + znear) / (zfar - znear), 1.0],
-        [0.0, 0.0, -(2.0 * zfar * znear) / (zfar - znear), 0.0],
-      ]
-    };
-
-    let light = [1.4, 0.4, -0.7f32];
+    let light = [1.4, 0.4, -0.9f32];
 
     let uniforms = uniform! {
       model: model,
       view: view,
       perspective: perspective,
+      diffuse_tex: &diffuse,
       u_light: light
     };
 
@@ -167,7 +173,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
     };
 
     target.clear_color_and_depth((0.93, 0.93, 0.93, 1.0), 1.0);
-    target.draw(vertices, &indices, &shader, &uniforms, &params).unwrap();
+    target.draw(&shape, &indices, &shader, &uniforms, &params).unwrap();
     target.finish().unwrap();
 
     events_loop.poll_events(|ev| {
