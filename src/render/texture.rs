@@ -6,6 +6,12 @@ use glium::texture::{RawImage2d, SrgbTexture2d, Texture2d};
 use std::fs::File;
 use std::io::BufReader;
 
+pub struct Texture {
+  pub diffuse: SrgbTexture2d,
+  pub normal: Texture2d,
+  pub specular: Texture2d
+}
+
 pub fn raw_texture(name: &str) -> RawImage2d<u8> {
   let image_path = format!("./textures/{}.png", name);
   let image_file = File::open(image_path).unwrap();
@@ -18,13 +24,15 @@ pub fn raw_texture(name: &str) -> RawImage2d<u8> {
   RawImage2d::from_raw_rgba_reversed(raw, dimensions)
 }
 
-pub fn load_texture<T: Facade>(name: &str, display: &T) -> (SrgbTexture2d, Texture2d, Texture2d) {
-  let normal_name = format!("{}_n", name);
-  let specular_name = format!("{}_s", name);
+impl Texture {
+  pub fn load<T: Facade>(name: &str, display: &T) -> Texture {
+    let normal_name = format!("{}_n", name);
+    let specular_name = format!("{}_s", name);
 
-  let diffuse = SrgbTexture2d::new(display, raw_texture(name)).unwrap();
-  let normal = Texture2d::new(display, raw_texture(&normal_name)).unwrap();
-  let specular = Texture2d::new(display, raw_texture(&specular_name)).unwrap();
+    let diffuse = SrgbTexture2d::new(display, raw_texture(name)).unwrap();
+    let normal = Texture2d::new(display, raw_texture(&normal_name)).unwrap();
+    let specular = Texture2d::new(display, raw_texture(&specular_name)).unwrap();
 
-  (diffuse, normal, specular)
+    Texture {diffuse, normal, specular}
+  }
 }

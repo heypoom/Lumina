@@ -6,7 +6,7 @@ use glium::backend::Facade;
 
 static SHADER_PATH: &str = "./shaders/";
 
-pub fn get_shader<T: Facade>(name: &str, display: &T) -> Program {
+pub fn load_shader<T: Facade>(name: &str, display: &T) -> Program {
   let mut vert_src = String::new();
   let mut frag_src = String::new();
 
