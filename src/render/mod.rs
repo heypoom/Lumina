@@ -14,14 +14,13 @@ mod matrix;
 mod input;
 mod camera;
 
-pub use self::game_loop::GameLoop;
 pub use self::camera::Camera;
 pub use self::game::Game;
 
 pub const PI: f32 = 3.141592;
 
 pub fn init() {
-  let events_loop = EventsLoop::new();
+  let mut events_loop = EventsLoop::new();
 
   let window = WindowBuilder::new()
     .with_dimensions(1024, 768)
@@ -31,5 +30,5 @@ pub fn init() {
 
   let display = Display::new(window, context, &events_loop).unwrap();
 
-  GameLoop::new(&display, events_loop);
+  game_loop::run(&display, &mut events_loop);
 }
