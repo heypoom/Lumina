@@ -189,7 +189,9 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let (diffuse, normal_map, specular_map) = load_texture("command_block", &display);
 
   let mut t: f32 = -0.5;
+
   let mut x: f32 = -0.5;
+  let mut y: f32 = -0.5;
   let mut z: f32 = 2.0;
 
   while !closed {
@@ -200,13 +202,17 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
     }
 
     let model = [
-      [1.0, 0.0, 0.0, 0.0],
-      [0.0, 1.0, 0.0, 0.0],
+      [t.cos(), t.sin(), 0.0, 0.0],
+      [-t.sin(), t.cos(), 0.0, 0.0],
       [0.0, 0.0, 1.0, 0.0],
       [0.0, 0.0, z, 1.0f32],
     ];
 
-    let view = view_matrix(&[0.5, 0.2, -3.0], &[-0.5, -0.0, 3.0], &[0.0, 1.0, 0.0]);
+    let cam_pos = [z, x, 1.0];
+    let cam_facing = [x, 1.0, 1.0];
+    let cam_up = [0.0, 1.0, 0.0];
+
+    let view = view_matrix(&cam_pos, &cam_facing, &cam_up);
 
     let mut target = display.draw();
 
@@ -246,22 +252,18 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
         WindowEvent::Closed => closed = true,
         WindowEvent::KeyboardInput { input, .. } => match input.scancode {
           13 => {
-            println!("W");
             z -= 0.1;
           }
           0 => {
-            println!("A");
             x -= 0.1;
           }
           1 => {
-            println!("S");
             z += 0.1;
           }
           2 => {
-            println!("D");
             x += 0.1;
           }
-          _ => (),
+          _ => println!("Key: {}", input.scancode),
         },
         _ => (),
       },
