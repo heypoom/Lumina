@@ -3,7 +3,7 @@ use glium::glutin::{Event, EventsLoop, WindowEvent};
 
 use super::Game;
 use super::Camera;
-use super::input;
+use super::input::Input;
 
 pub struct GameLoop<'a> {
   pub game: Game<'a>,
@@ -26,7 +26,7 @@ impl<'a> GameLoop<'a> {
 
   pub fn run(&mut self) {
     while self.active {
-      self.event_loop.poll_events(|event| {
+      &self.event_loop.poll_events(|event| {
         match event {
           Event::WindowEvent { event, .. } => {
             &self.handle_window(event);
@@ -41,7 +41,7 @@ impl<'a> GameLoop<'a> {
     match event {
       WindowEvent::Closed => self.close(),
       WindowEvent::KeyboardInput { input, .. } => {
-        input::handle_keyboard(input.scancode, &mut self.game);
+        self.game.handle_keyboard(input.scancode);
         self.debug_title();
       },
       _ => (),

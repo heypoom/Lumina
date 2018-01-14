@@ -17,40 +17,47 @@ const ARROW_RIGHT: u32 = 124;
 // J; 38 => {}
 // K; 40 => {}
 
-pub fn handle_keyboard(scancode: u32, game: &mut Game) {
-  let camera = &mut game.camera;
+pub trait Input {
+  fn handle_keyboard(&mut self, scancode: u32);
+}
 
-  match scancode {
-    MOVE_FORWARD => {
-      camera.add_z(-0.1)
+impl<'a> Input for Game<'a> {
+  fn handle_keyboard(&mut self, scancode: u32) {
+    let camera = &mut self.camera;
+
+    match scancode {
+      MOVE_FORWARD => {
+        camera.add_z(-0.1)
+      }
+      MOVE_LEFT => {
+       camera.add_x(0.1)
+      }
+      MOVE_BACKWARD => {
+        camera.add_z(0.1)
+      }
+      MOVE_RIGHT => {
+        camera.add_x(-0.1)
+      }
+      JUMP => {
+        camera.add_y(0.1)
+      }
+      CROUCH => {
+        camera.add_y(-0.1)
+      }
+      ARROW_UP => {
+        camera.add_pitch(0.1)
+      }
+      ARROW_DOWN => {
+        camera.add_pitch(-0.1)
+      }
+      ARROW_LEFT => {
+        camera.add_yaw(-0.1)
+      }
+      ARROW_RIGHT => {
+        camera.add_yaw(0.1)
+      }
+      _ => println!("Unmapped Key: {}", &scancode)
     }
-    MOVE_LEFT => {
-     camera.add_x(0.1)
-    }
-    MOVE_BACKWARD => {
-      camera.add_z(0.1)
-    }
-    MOVE_RIGHT => {
-      camera.add_x(-0.1)
-    }
-    JUMP => {
-      camera.add_y(0.1)
-    }
-    CROUCH => {
-      camera.add_y(-0.1)
-    }
-    ARROW_UP => {
-      camera.add_pitch(0.1)
-    }
-    ARROW_DOWN => {
-      camera.add_pitch(-0.1)
-    }
-    ARROW_LEFT => {
-      camera.add_yaw(-0.1)
-    }
-    ARROW_RIGHT => {
-      camera.add_yaw(0.1)
-    }
-    _ => println!("Unmapped Key: {}", &scancode)
   }
 }
+
