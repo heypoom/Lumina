@@ -7,11 +7,11 @@ use super::cube;
 use super::shader;
 
 pub struct Game<'a> {
-  camera: Camera,
-  display: &'a Display,
-  tick: f32,
-  texture: Texture,
-  shader: Program
+  pub camera: Camera,
+  pub display: &'a Display,
+  pub tick: f32,
+  pub texture: Texture,
+  pub shader: Program
 }
 
 static draw_params: DrawParameters = DrawParameters {
@@ -26,21 +26,16 @@ static draw_params: DrawParameters = DrawParameters {
 
 impl<'a> Game<'a> {
   pub fn new(display: &Display) -> Game {
-    let game = Game {
+    let texture = Texture::load("prismarine_bricks", display);
+    let shader = shader::load_shader("Basic", display);
+
+    Game {
       camera: Camera::new(),
       display,
       tick: 0.0,
-      shader: shader::load_shader("Basic", display),
-      texture: Texture::load("prismarine_bricks", display)
-    };
-
-    game.setup();
-
-    game
-  }
-
-  pub fn setup(&self) {
-    // Setup Logic
+      shader,
+      texture
+    }
   }
 
   pub fn update(&mut self) {

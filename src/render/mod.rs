@@ -1,41 +1,23 @@
 extern crate glium;
 extern crate image;
 
-use self::glium::{index, Display, IndexBuffer, Program, Surface, VertexBuffer};
+use self::glium::Display;
 use self::glium::glutin::*;
-use self::glium::backend::Facade;
-use self::glium::texture::{RawImage2d, SrgbTexture2d, Texture2d};
 
 mod game;
+mod game_loop;
 mod cube;
 mod shader;
 mod texture;
 mod matrix;
+mod input;
 mod camera;
 
-use self::camera::Camera;
+pub use self::game_loop::GameLoop;
+pub use self::camera::Camera;
+pub use self::game::Game;
 
 pub const PI: f32 = 3.141592;
-
-fn handle_events(display: Display, events_loop: &mut EventsLoop) {
-  let mut closed = false;
-
-  while !closed {
-    events_loop.poll_events(|ev| match ev {
-      Event::WindowEvent { event, .. } => match event {
-        WindowEvent::Closed => closed = true,
-        WindowEvent::KeyboardInput { input, .. } => {
-          let debug_str = format!("Lumina v0.1 | x {}, y {}, z {}, pitch {}, yaw {}", x, y, z, pitch, yaw);
-          &display.gl_window().set_title(&debug_str);
-
-
-        },
-        _ => (),
-      },
-      _ => (),
-    });
-  }
-}
 
 pub fn init() {
   let mut events_loop = EventsLoop::new();
@@ -48,5 +30,5 @@ pub fn init() {
 
   let display = Display::new(window, context, &events_loop).unwrap();
 
-  handle_events(display, &mut events_loop);
+  GameLoop::new(&display, events_loop);
 }
