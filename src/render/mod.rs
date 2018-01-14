@@ -123,6 +123,7 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let shader = get_shader("Basic", &display);
 
   let diffuse = SrgbTexture2d::new(&display, raw_texture("PEBBLES_COLOR")).unwrap();
+  let normal_map = Texture2d::new(&display, raw_texture("PEBBLES_NRM")).unwrap();
 
   let mut t: f32 = -0.5;
   let mut x: f32 = -0.5;
@@ -152,13 +153,14 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
 
     let perspective = perspective(target.get_dimensions());
 
-    let light = [1.4, 0.4, -0.9f32];
+    let light = [1.4, 0.4, 0.7f32];
 
     let uniforms = uniform! {
       model: model,
       view: view,
       perspective: perspective,
       diffuse_tex: &diffuse,
+      normal_tex: &normal_map,
       u_light: light
     };
 
