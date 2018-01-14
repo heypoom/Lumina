@@ -1,6 +1,9 @@
 use glium::Display;
 use glium::glutin::{Event, EventsLoop, WindowEvent};
 
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use super::Game;
 use super::Camera;
 use super::input::Input;
@@ -25,14 +28,23 @@ impl<'a> GameLoop<'a> {
   }
 
   pub fn run(&mut self) {
-    while self.active {
-      &self.event_loop.poll_events(|event| {
+    let this = Rc::new(RefCell::new(self));
+    let s2 = Rc::clone(&this);
+    let s3 = Rc::clone(&this);
+    let s4 = Rc::clone(&this);
+
+    while s2.borrow().active {
+      println!("Active");
+
+      s3.borrow_mut().event_loop.poll_events(|event| {
+        println!("Polling");
+
         match event {
           Event::WindowEvent { event, .. } => {
-            &self.handle_window(event);
+            s4.borrow_mut().handle_window(event);
           },
           _ => {}
-        };
+        }
       });
     }
   }

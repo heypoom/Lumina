@@ -14,7 +14,7 @@ pub struct Texture {
 
 pub fn raw_texture(name: &str) -> RawImage2d<u8> {
   let image_path = format!("./textures/{}.png", name);
-  let image_file = File::open(image_path).unwrap();
+  let image_file = File::open(image_path).expect("Failed to load Texture");
   let image_reader = BufReader::new(image_file);
 
   let image = image::load(image_reader, image::PNG).unwrap().to_rgba();

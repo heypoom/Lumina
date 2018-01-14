@@ -17,7 +17,7 @@ pub struct Game<'a> {
 
 impl<'a> Game<'a> {
   pub fn new(display: &Display) -> Game {
-    let texture = Texture::load("prismarine_bricks", display);
+    let texture = Texture::load("gold_ore", display);
     let shader = shader::load_shader("Basic", display);
 
     Game {
