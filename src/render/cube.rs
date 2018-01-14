@@ -1,8 +1,19 @@
-use self::glium::{index, Display, IndexBuffer, Program, Surface, VertexBuffer};
+use glium::{IndexBuffer, VertexBuffer};
+use glium::index::PrimitiveType;
+use glium::backend::Facade;
 
-pub fn new_cube() -> (VertexBuffer, IndexBuffer) {
+#[derive(Copy, Clone)]
+pub struct Vertex {
+  pub pos: [f32; 3],
+  pub normal: [f32; 3],
+  pub uv: [f32; 2],
+}
+
+implement_vertex!(Vertex, pos, normal, uv);
+
+pub fn new_cube<T: Facade>(display: &T) -> (VertexBuffer<Vertex>, IndexBuffer<u16>) {
   #[cfg_attr(rustfmt, rustfmt_skip)]
-  let shape = VertexBuffer::new(&display, &[
+  let shape = VertexBuffer::new(display, &[
     // Front
     Vertex { pos: [-1.0, -1.0,  1.0], normal: [ 0.0,  0.0,  1.0], uv: [1.0, 0.0] },
     Vertex { pos: [ 1.0, -1.0,  1.0], normal: [ 0.0,  0.0,  1.0], uv: [0.0, 0.0] },
@@ -61,7 +72,7 @@ pub fn new_cube() -> (VertexBuffer, IndexBuffer) {
     20, 22, 21, 20, 23, 22,
   ];
 
-  let indices = IndexBuffer::new(&display, index::PrimitiveType::TrianglesList, indices_list).unwrap();
+  let indices = IndexBuffer::new(display, PrimitiveType::TrianglesList, indices_list).unwrap();
 
   (shape, indices)
 }

@@ -1,11 +1,9 @@
 extern crate image;
 
-use glium::{index, Display, IndexBuffer, Program, Surface, VertexBuffer};
 use glium::backend::Facade;
 use glium::texture::{RawImage2d, SrgbTexture2d, Texture2d};
 
 use std::fs::File;
-use std::io::prelude::*;
 use std::io::BufReader;
 
 pub fn raw_texture(name: &str) -> RawImage2d<u8> {

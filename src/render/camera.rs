@@ -1,3 +1,8 @@
+use super::matrix;
+use glium::{Frame, Surface};
+
+type Matrix = [[f32; 4]; 4];
+
 pub struct Camera {
   pub x: f32,
   pub y: f32,
@@ -39,5 +44,23 @@ impl Camera {
 
   pub fn add_yaw(&mut self, val: f32) {
     self.yaw += val;
+  }
+
+  pub fn render(&self, target: &Frame) -> (Matrix, Matrix) {
+    let &Camera {x, y, z, pitch, yaw} = self;
+    let cam_pos = [x, y, z];
+
+    let rot_x = pitch.sin() * yaw.cos();
+    let rot_y = pitch.sin() * yaw.sin();
+    let rot_z = pitch.cos();
+
+    let cam_facing = [rot_x, rot_y, rot_z];
+
+    let cam_up = [0.0, 1.0, 0.0];
+
+    let view = matrix::view(&cam_pos, &cam_facing, &cam_up);
+    let perspective = matrix::perspective(target.get_dimensions());
+
+    (view, perspective)
   }
 }

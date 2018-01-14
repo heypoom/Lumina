@@ -6,24 +6,19 @@ use self::glium::glutin::*;
 use self::glium::backend::Facade;
 use self::glium::texture::{RawImage2d, SrgbTexture2d, Texture2d};
 
+mod cube;
 mod shader;
 mod texture;
 mod matrix;
 mod camera;
 
-#[derive(Copy, Clone)]
-pub struct Vertex {
-  pub pos: [f32; 3],
-  pub normal: [f32; 3],
-  pub uv: [f32; 2],
-}
-
-implement_vertex!(Vertex, pos, normal, uv);
+use self::camera::Camera;
 
 pub const PI: f32 = 3.141592;
 
 fn handle_events(display: Display, events_loop: &mut EventsLoop) {
   let mut closed = false;
+  let cam = Camera::new();
 
   let shader = shader::get_shader("Basic", &display);
 
@@ -45,29 +40,14 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       [0.0, 0.0, 0.0, 1.0f32],
     ];
 
-    let cam_pos = [x, y, z];
-
-    let rot_x = pitch.sin() * yaw.cos();
-    let rot_y = pitch.sin() * yaw.sin();
-    let rot_z = pitch.cos();
-
-    let cam_facing = [rot_x, rot_y, rot_z];
-
-    let cam_up = [0.0, 1.0, 0.0];
-
-    let view = matrix::view(&cam_pos, &cam_facing, &cam_up);
-
     let mut target = display.draw();
 
-    let perspective = matrix::perspective(target.get_dimensions());
+    let (model, perspective) = cam.render(&target);
 
     // let light = [1.7, 0.3, 0.7f32];
     let light = [-1.0, 0.4, 0.9f32];
 
     let uniforms = uniform! {
-      model: model,
-      view: view,
-      perspective: perspective,
       diffuse_tex: &diffuse,
       normal_tex: &normal_map,
       specular_tex: &specular_map,
@@ -84,7 +64,9 @@ fn handle_events(display: Display, events_loop: &mut EventsLoop) {
       ..Default::default()
     };
 
-    target.clear_color_and_depth((0.93, 0.93, 0.93, 1.0), 1.0);
+    let bg_color = (0.93, 0.93, 0.93, 1.0);
+
+    target.clear_color_and_depth(bg_color, 1.0);
 
     target.draw(&shape, &indices, &shader, &uniforms, &params).unwrap();
 
