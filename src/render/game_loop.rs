@@ -10,6 +10,8 @@ pub fn run(display: &Display, event_loop: &mut EventsLoop) {
   let mut active = true;
 
   while active {
+    game.update();
+
     event_loop.poll_events(|event| {
       match event {
         Event::WindowEvent { event, .. } => {
